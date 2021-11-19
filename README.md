@@ -10,15 +10,8 @@ Requirements:
 
 * fcgi
 
-* cmake
-
-* pkgconfig
-
 ```shell
-$ mkdir cmake-build-release/
-$ cd cmake-build-release/
-$ cmake -DCMAKE_BUILD_TYPE=Release ..
-$ make -j mdrd
+$ make -j all
 ```
 
 ## Running
