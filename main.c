@@ -84,8 +84,10 @@ int main() {
         cmark_node_free(document);
         printf("Content-Type: text/html\r\n"
                "Content-Length: %d\r\n"
-               "\r\n%s",
-               strlen(html) * sizeof(char),
+               "\r\n"
+               "<html><head><meta charset=\"utf-8\"></head><body>%s</body></html>",
+               (strlen("<html><head><meta charset=\"utf-8\"></head><body></body></html>") + strlen(html))
+               * sizeof(char),
                html);
         free(html);
         fclose(file);
