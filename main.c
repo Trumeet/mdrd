@@ -5,22 +5,30 @@
 #include <errno.h>
 
 static void print_error(const char *error, ...) {
-    printf("Status: 500 Internal Server Error\r\n"
-           "Content-Type: text/html\r\n"
-           "\r\n"
-           "<html lang=\"en\">"
-           "<head>"
-           "<meta charset=\"utf-8\">"
-           "<title>Error</title>"
-           "</head>"
-           "<body>"
-           "<p>The server encountered the following error(s) rendering your document:<br />");
+    char fmt[512];
+    char buffer[128];
     va_list args;
     va_start(args, error);
-    vprintf(error, args);
+    vsprintf(buffer, error, args);
     va_end(args);
-    printf("</p>"
-           "</body>");
+    sprintf(fmt, "<html lang=\"en\">"
+                 "<head>"
+                 "<meta charset=\"utf-8\">"
+                 "<title>Error</title>"
+                 "</head>"
+                 "<body>"
+                 "<p>The server encountered the following error(s) rendering your document:<br />"
+                 "%s"
+                 "</p>"
+                 "</body>",
+                 buffer);
+    printf("Status: 500 Internal Server Error\r\n"
+           "Content-Type: text/html\r\n"
+           "Content-Length: %d\r\n"
+           "\r\n"
+           "%s",
+           strlen(fmt) * sizeof(char),
+           fmt);
 }
 
 int main() {
@@ -49,7 +57,10 @@ int main() {
         if (file == NULL) {
             int r = errno;
             if (r == ENOENT) {
-                printf("Status: 404 Not Found\r\nContent-Type: text/plain\r\n\r\n");
+                printf("Status: 404 Not Found\r\n"
+                       "Content-Type: text/plain\r\n"
+                       "Content-Length: 0\r\n"
+                       "\r\n");
                 free(uri);
                 goto end;
             }
@@ -69,9 +80,13 @@ int main() {
         }
         cmark_node *document = cmark_parser_finish(parser);
         cmark_parser_free(parser);
-        char *html = cmark_render_html(document, CMARK_OPT_DEFAULT); //cmark_markdown_to_html(buffer, strlen(buffer), 0);
+        char *html = cmark_render_html(document, CMARK_OPT_DEFAULT);
         cmark_node_free(document);
-        printf("Content-Type: text/html\r\n\r\n%s", html);
+        printf("Content-Type: text/html\r\n"
+               "Content-Length: %d\r\n"
+               "\r\n%s",
+               strlen(html) * sizeof(char),
+               html);
         free(html);
         fclose(file);
         goto end;
